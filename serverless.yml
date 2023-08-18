@@ -1,0 +1,39 @@
+org: math3us2021
+app: test
+service: test
+frameworkVersion: '3'
+
+params:
+  default:
+    dbname: alura-serverless
+  dev:
+    connectionString: mongodb://localhost:27017/${self:params.default.dbname}
+  prod:
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  environment:
+    MONGODB_CONNECTION_STRING: ${param:connectionString}
+    MONGODB_DB_NAME: ${param:dbname}
+
+functions:
+  sendResponse: # function name
+    handler: api/index.sendResponse
+    events:
+      - httpApi:
+          path: /api/results
+          method: post
+          request:
+            schema:
+              application/json: ${file(./schema/sendResponse.json)} # vai ler o arquivo result.json, que valida a entrada
+
+  getResponse:
+    handler: api/index.getResponse # caminho e nome da função
+    events:
+      - httpApi:
+          path: /api/results/{id}
+          method: get
+
+plugins:
+  - serverless-offline
